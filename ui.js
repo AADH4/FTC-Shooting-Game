@@ -1,16 +1,19 @@
-import {SEASONS,landing,isHit,aimError} from './aim.js';
+import {SEASONS,landing,isHit} from './aim.js';
+import {randomTarget,targetLifetime} from './targets.js';
 const $=id=>document.getElementById(id), canvas=$('field'),ctx=canvas.getContext('2d'),keys=new Set();
 const ROUND_MS=30000;
-const TARGETS={biobuzz:[{x:360,y:328,r:25},{x:360,y:394,r:25}],decode:[{x:115,y:105,r:31},{x:605,y:105,r:31}]};
-let running=false,deadline=0,points=0,combo=0,lastHit=0,targetIndex=0;
-function currentTarget(){return TARGETS[season][targetIndex];}
+let running=false,deadline=0,points=0,combo=0,lastHit=0,target=null,targetId=0,targetEnds=0,targetBorn=0,expired=0;
+function currentTarget(){return target;}
+function spawnTarget(now=performance.now()){
+  target=randomTarget({x,y},target,score);targetId++;targetBorn=now;targetEnds=now+targetLifetime(score);
+}
 let season='biobuzz',x,y,heading,range,score=0,shots=0,flight=null,last=performance.now();
-function reset(){const s=SEASONS[season];({x,y}=s.start);heading=s.heading;range=s.range;score=shots=points=combo=0;lastHit=0;targetIndex=0;running=false;deadline=0;flight=null;keys.clear();$('start').disabled=false;$('shoot').disabled=true;$('timer').textContent='30.0';$('timer').classList.remove('urgent');$('combo').textContent='×1';$('heading').value=Math.round(heading);$('range').value=range;$('status').textContent='Ready for Eagle Rush? Start your 30-second challenge.';sync();}
-function sync(){const t=currentTarget();$('headingValue').value=`${heading.toFixed(1)}°`;$('rangeValue').value=`${Math.round(range)} units`;$('position').textContent=`${Math.round(x)}, ${Math.round(y)}`;$('distance').textContent=`${Math.round(Math.hypot(t.x-x,t.y-y))} units`;$('error').textContent='Judge your heading';$('score').textContent=points;$('combo').textContent=`×${Math.max(1,combo)}`;$('shots').textContent=shots;$('accuracy').textContent=shots?`${Math.round(score/shots*100)}%`:'—';}
-function shoot(){if(!running||performance.now()>=deadline||flight)return;const end=landing(x,y,heading,range);shots++;flight={start:{x,y},end,t:0,hit:isHit(end,currentTarget())};$('status').textContent='Shot in flight…';sync();}
-for(const button of document.querySelectorAll('.season'))button.onclick=()=>{season=button.dataset.season;for(const b of document.querySelectorAll('.season')){const selected=b===button;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',selected);}$('fieldLabel').textContent=`${SEASONS[season].label} / TOP DOWN`;$('targetTitle').textContent=season==='biobuzz'?'Aim for the Hive':'Score an Artifact';$('description').textContent=season==='biobuzz'?'Hit the glowing Hive cell. Every hit switches the target. Chain hits within 3 seconds for up to ×5 points.':'Hit the glowing Goal. Every hit switches blue and red targets. Chain hits within 3 seconds for up to ×5 points.';document.documentElement.style.setProperty('--accent',season==='biobuzz'?'#f6c663':'#bba2ff');reset();};
+function reset(){const s=SEASONS[season];({x,y}=s.start);heading=s.heading;range=s.range;score=shots=points=combo=0;lastHit=0;expired=0;target=null;spawnTarget();running=false;deadline=0;flight=null;keys.clear();$('start').disabled=false;$('shoot').disabled=true;$('timer').textContent='30.0';$('timer').classList.remove('urgent');$('combo').textContent='×1';$('heading').value=Math.round(heading);$('range').value=range;$('status').textContent='Ready for Target Blitz? Start your 30-second challenge.';sync();}
+function sync(){const t=currentTarget();$('headingValue').value=`${heading.toFixed(1)}°`;$('rangeValue').value=`${Math.round(range)} units`;$('position').textContent=`${Math.round(x)}, ${Math.round(y)}`;$('distance').textContent=`${Math.round(Math.hypot(t.x-x,t.y-y))} units`;$('error').textContent=isHit(landing(x,y,heading,range),t)?'ON TARGET':'Adjust aim / range';$('targetTime').textContent=running?`${Math.max(0,(targetEnds-performance.now())/1000).toFixed(1)}s`:'—';$('expired').textContent=expired;$('score').textContent=points;$('combo').textContent=`×${Math.max(1,combo)}`;$('shots').textContent=shots;$('accuracy').textContent=shots?`${Math.round(score/shots*100)}%`:'—';}
+function shoot(){if(!running||performance.now()>=deadline||flight)return;const end=landing(x,y,heading,range);shots++;flight={start:{x,y},end,t:0,targetId,hit:isHit(end,currentTarget())};$('status').textContent='Shot in flight…';sync();}
+for(const button of document.querySelectorAll('.season'))button.onclick=()=>{season=button.dataset.season;for(const b of document.querySelectorAll('.season')){const selected=b===button;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',selected);}$('fieldLabel').textContent=`${SEASONS[season].label} / TOP DOWN`;$('targetTitle').textContent=season==='biobuzz'?'Pollen Pop':'Artifact Hunt';$('description').textContent=season==='biobuzz'?'Hit the glowing Hive cell. Every hit switches the target. Chain hits within 3 seconds for up to ×5 points.':'Hit the glowing Goal. Every hit switches blue and red targets. Chain hits within 3 seconds for up to ×5 points.';document.documentElement.style.setProperty('--accent',season==='biobuzz'?'#f6c663':'#bba2ff');reset();};
 $('heading').oninput=e=>{if(!running)return;heading=+e.target.value;sync();};$('range').oninput=e=>{if(!running)return;range=+e.target.value;sync();};$('shoot').onclick=shoot;
-$('start').onclick=()=>{reset();running=true;deadline=performance.now()+ROUND_MS;$('start').disabled=true;$('shoot').disabled=false;$('status').textContent='Go! Hit the lit target. Chain hits within 3 seconds for a combo.';canvas.focus();};$('reset').onclick=reset;
+$('start').onclick=()=>{reset();running=true;deadline=performance.now()+ROUND_MS;spawnTarget();$('start').disabled=true;$('shoot').disabled=false;$('status').textContent='Go! Targets appear anywhere. Hit before the ring runs out!';canvas.focus();};$('reset').onclick=reset;
 canvas.addEventListener('pointerdown',()=>canvas.focus());
 window.addEventListener('keydown',e=>{if(['INPUT','BUTTON'].includes(e.target.tagName))return;if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyQ','KeyE','Space'].includes(e.code)){e.preventDefault();keys.add(e.code);if(e.code==='Space'&&!e.repeat)shoot();}});
 window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>keys.clear());
@@ -40,30 +43,13 @@ function drawField(){
     ctx.beginPath();ctx.moveTo(n,35);ctx.lineTo(n,685);ctx.moveTo(35,n);ctx.lineTo(685,n);ctx.stroke();
   }
   ctx.restore();
-  if(season==='biobuzz'){
-    panel(70,600,125,50,'#203752','#426da0');panel(525,600,125,50,'#492a35','#8a4b5a');
-    label('BLUE ALLIANCE',132,630,'#99bde6');label('RED ALLIANCE',587,630,'#dca3af');
-    panel(311,293,98,142,'#323228','#675e3d',20);
-    panel(327,361,66,57,'#4c422a','#80704a',14);
-    label('LOWER CELL',360,400,'#b0a075',9);
-    for(const [fx,fy] of [[55,180],[665,180],[55,520],[665,520]]){
-      for(let a=0;a<6;a++){const r=a*Math.PI/3;circle(fx+Math.cos(r)*12,fy+Math.sin(r)*12,8,'#827047');}
-      circle(fx,fy,10,'#d6b563');
-    }
-    for(const [bx,by] of [[195,245],[215,490],[515,230],[525,470]]){circle(bx,by,7,'#cbb675');ring(bx,by,7,'#f0d89c',1);}
-  }else{
-    ctx.fillStyle='#6396df0b';ctx.beginPath();ctx.moveTo(45,45);ctx.lineTo(675,45);ctx.lineTo(360,360);ctx.closePath();ctx.fill();
-    ctx.strokeStyle='#54708a';ctx.lineWidth=1;ctx.setLineDash([6,10]);ctx.stroke();ctx.setLineDash([]);
-    panel(60,60,110,75,'#25436b','#6f9bcd');panel(550,60,110,75,'#593340','#b96a7e');
-    panel(76,143,65,100,'#20344d','#42607e',7);panel(580,143,65,100,'#432c37','#75505e',7);
-    for(let i=0;i<3;i++){circle(109,162+i*30,8,i===2?'#80c9a0':'#a58adb');circle(612,162+i*30,8,i===2?'#80c9a0':'#a58adb');}
-    label('CLASSIFIER',109,261,'#7c97b2',9);label('CLASSIFIER',612,261,'#af8b96',9);
-    label('RED GOAL',605,113,'#e7acb8',11);
-    panel(325,50,70,40,'#3b384b','#6e657f',6);label('OBELISK',360,75,'#beb6d3',9);
-    panel(60,585,110,70,'#20344d','#42607e');panel(550,585,110,70,'#432c37','#75505e');
-    label('BLUE BASE',115,627,'#91b2d6');label('RED BASE',605,627,'#d0a0ad');
-    for(const bx of [210,510])for(let i=0;i<3;i++){circle(bx,300+i*26,9,i===2?'#7cda9b':'#b295ec');ring(bx,300+i*26,9,'#ffffff44',1);}
+  const accent=season==='biobuzz'?'#f6c663':'#bba2ff';
+  // Season-flavored arena, rather than fixed competition goals.
+  for(const [px,py] of [[60,60],[660,60],[60,660],[660,660]]){
+    ring(px,py,10,accent+'55',2);circle(px,py,3,accent);
   }
+  label(season==='biobuzz'?'POLLEN POP / RANDOM TARGET ARENA':'ARTIFACT HUNT / RANDOM TARGET ARENA',360,62,'#7890a8',10);
+
 }
 function drawTarget(target){
   const accent=season==='biobuzz'?'#f6c663':'#bba2ff';
@@ -80,21 +66,22 @@ function drawTarget(target){
     ctx.lineTo(target.x+Math.cos(angle)*(target.r+20),target.y+Math.sin(angle)*(target.r+20));ctx.stroke();
   }
   circle(target.x,target.y,3,'#ffffff');
-  const cx=season==='biobuzz'?426:(targetIndex===0?192:350),cy=season==='biobuzz'?target.y-52:104;
-  ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.beginPath();
-  ctx.moveTo(target.x+(season==='decode'&&targetIndex===1?-1:1)*(target.r+20),target.y);ctx.lineTo(cx-12,cy+20);ctx.lineTo(cx,cy+20);ctx.stroke();
-  panel(cx,cy,190,58,'#0b1520',accent,9);
-  label('SHOOT HERE',cx+95,cy+23,accent,15);
-  label(season==='biobuzz'?(targetIndex===0?'HIVE • UPPER CELL':'HIVE • LOWER CELL'):(targetIndex===0?'BLUE GOAL • ARTIFACTS':'RED GOAL • ARTIFACTS'),cx+95,cy+43,'#c7d5e3',10);
+  const remaining=running?Math.max(0,(targetEnds-performance.now())/targetLifetime(score)):1;
+  ctx.beginPath();ctx.arc(target.x,target.y,target.r+12,-Math.PI/2,-Math.PI/2+remaining*Math.PI*2);
+  ctx.strokeStyle=remaining<.3?'#ff907c':accent;ctx.lineWidth=5;ctx.stroke();
+  label('SHOOT HERE',target.x,target.y-target.r-28,accent,13);
+  label(running?`${Math.max(0,(targetEnds-performance.now())/1000).toFixed(1)}s LEFT`:'RANDOM TARGET',target.x,target.y+target.r+30,'#d7e3ef',11);
+
 }
 function draw(){
   drawField();
   const target=currentTarget(),end=landing(x,y,heading,range),hit=isHit(end,target);
-  // Show only the robot's short heading ray: players judge landing distance.
-  const direction=landing(x,y,heading,75);
-  ctx.strokeStyle='#c5d2df';ctx.lineWidth=2;ctx.setLineDash([5,7]);
-  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(direction.x,direction.y);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle=hit?'#7de7ae':'#c5d2df';ctx.lineWidth=2;ctx.setLineDash([5,8]);
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(end.x,end.y);ctx.stroke();ctx.setLineDash([]);
   drawTarget(target);
+  ring(end.x,end.y,10,hit?'#7de7ae':'#ffae80',3);
+  ctx.strokeStyle=hit?'#7de7ae':'#ffae80';ctx.lineWidth=2;ctx.beginPath();
+  ctx.moveTo(end.x-15,end.y);ctx.lineTo(end.x+15,end.y);ctx.moveTo(end.x,end.y-15);ctx.lineTo(end.x,end.y+15);ctx.stroke();
   ctx.save();ctx.translate(x,y);ctx.rotate(heading*Math.PI/180);
   ctx.shadowColor='#00000066';ctx.shadowBlur=10;ctx.shadowOffsetY=4;
   panel(-23,-23,46,46,'#d6e3ee','#ffffff',8);ctx.shadowBlur=0;ctx.shadowOffsetY=0;
@@ -106,9 +93,9 @@ function draw(){
   if(flight){const t=flight.t,fx=flight.start.x+(flight.end.x-flight.start.x)*t,fy=flight.start.y+(flight.end.y-flight.start.y)*t;circle(fx+3,fy+5,7,'#00000066');circle(fx,fy,7+Math.sin(t*Math.PI)*5,season==='biobuzz'?'#ffe19a':'#bba2ff');}
   // Keep the alignment cue readable regardless of field geometry.
   panel(226,643,268,29,'#0b1520','#4b5c6d',8);
-  label(running?'HIT THE LIT TARGET • CHAIN QUICK SHOTS':'EAGLE RUSH • 30-SECOND AIM CHALLENGE',360,662,'#bfccd9',10);
+  label(running?hit?'ON TARGET — FIRE!':'CHASE THE TARGET • BEAT ITS CLOCK':'TARGET BLITZ • 30-SECOND AIM CHALLENGE',360,662,'#bfccd9',10);
   label('◎ SCORING OPENING',155,710,'#b7c7d8',10);
-  label('↗ SHORT RAY = HEADING',410,710,'#b7c7d8',10);
+  label('⊕ PREDICTED LANDING',410,710,'#b7c7d8',10);
   label('TOP DOWN',626,710,'#738a9f',9);
 }
 
@@ -135,13 +122,19 @@ function frame(now){
       range=Math.max(60,Math.min(850,range+((keys.has('ArrowUp')?1:0)-(keys.has('ArrowDown')?1:0))*220*dt));$('range').value=range;
     }
     if(combo&&now-lastHit>3000)combo=0;
+    if(now>=targetEnds){
+      expired++;combo=0;spawnTarget(now);
+      $('status').textContent='Target escaped! New location—re-aim quickly.';
+    }
     if(flight){
       flight.t=Math.min(1,flight.t+dt*2.5);
       if(flight.t>=1){
-        if(flight.hit){
+        if(flight.hit&&flight.targetId===targetId&&now<targetEnds){
           score++;combo=now-lastHit<=3000?Math.min(5,combo+1):1;
-          lastHit=now;points+=100*combo;targetIndex=1-targetIndex;
-          $('status').textContent=`+${100*combo} points! ×${combo} combo. Target switched—re-aim!`;
+          lastHit=now;
+          const bonus=Math.round(100*Math.max(0,1-(now-targetBorn)/targetLifetime(score-1)));
+          const earned=(100+bonus)*combo;points+=earned;spawnTarget(now);
+          $('status').textContent=`+${earned}! Speed bonus ${bonus} · ×${combo} combo. Find the next target!`;
         }else{
           combo=0;
           const error=Math.round(Math.hypot(flight.end.x-currentTarget().x,flight.end.y-currentTarget().y));
