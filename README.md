@@ -1,32 +1,36 @@
-# Eagle Eyes — Eagle Rush
+# Eagle Eyes — Target Blitz
 
-A 30-second FTC-inspired aiming challenge with BIOBUZZ and DECODE modes.
+A 30-second robot-shooter arcade challenge. BIOBUZZ **Pollen Pop** and DECODE **Artifact Hunt** are themed arenas, not official FTC field simulations.
 
-## Play
+## Play locally
 
-Run `python3 -m http.server 8000` from the project folder and open http://localhost:8000. No installation or build required. Click **Start 30-second rush**.
+Run `python3 -m http.server 8000` in the project folder, open http://localhost:8000, and click **Start Target Blitz**. No dependencies or build step.
 
-- WASD moves the robot.
-- Left/Right arrows rotate aim; Q/E also works.
-- Up/Down arrows adjust shot range; sliders also work.
-- Space or Shoot fires. One shot at a time, about 0.4 seconds in flight.
-- Reset session returns to the ready screen.
+## Controls
 
-## Eagle Rush rules
+- WASD: move
+- Left/Right arrows (or Q/E): aim
+- Up/Down arrows: shot range
+- Sliders: heading and range
+- Space or Shoot: fire; one ball in flight at a time
+- Touch arrows: move
 
-You have 30 seconds. Land in the bright **SHOOT HERE** opening to score. BIOBUZZ alternates between two Hive cells; DECODE alternates blue and red Goals. These switches are an arcade challenge mechanic, not official season rules.
+## New game loop
 
-Each hit earns 100 points multiplied by your combo. Consecutive hits within three seconds increase the combo up to ×5. A miss or three seconds without a hit breaks the combo. The buzzer cancels any in-flight shot; it still counts as an attempt. Switching seasons resets the round.
+A target appears at a random location, at least 140 units from the robot and 170 from the previous target. A glowing countdown ring shows its remaining life. Hit it before it expires to spawn another target. Expired targets reset your combo and increment the escaped count.
 
-There is no exact landing preview or numeric heading-error hint. A short ray shows your heading; use target distance and the field to judge range. Misses report distance from the target after landing.
+The dashed trajectory and crosshair preview where your shot will land. Green means your landing point fits inside the target. The shooter is manual: movement, heading, and range remain under your control.
 
-## Scope and future work
+Targets begin with 5.5 seconds of life and become 0.15 seconds faster per hit, down to 3 seconds. Their radius shrinks from 35 to 23 units as hits accumulate. Hits earn 100 base points plus a speed bonus up to 100, multiplied by the combo. Consecutive hits within 3 seconds increase the combo up to ×5. Misses, target expiry, or a 3-second gap break the combo.
 
-Original, simplified top-down layouts, not to-scale official fields. Shooting is a 2D landing calculation with a visual flight animation. Elevation physics, structure collisions, intakes, official launch zones, Hive tipping, Artifact pattern scoring, and backend are not implemented. Robot movement is limited by the perimeter only.
+Shots must land before the target expires and before the 30-second buzzer. A shot aimed at a target that has since expired cannot score on its replacement. Switching themes or resetting clears the session.
 
-- `index.html`: interface, round clock, season selector
+## Files
+
+- `index.html`: interface and counters
 - `style.css`: responsive styles
-- `ui.js`: rendering, input, timed round, target switching, combos
-- `aim.js`: starting settings and shot calculations
+- `ui.js`: rendering, input, round, target lifecycle, scoring
+- `targets.js`: random placement and difficulty
+- `aim.js`: shooter calculations and starting settings
 
-Original graphics and code; no official FIRST affiliation.
+This is a simplified 2D landing simulation. Elevation physics, structure collisions, intakes, official season rules, and backend are not implemented. Original code and graphics, no official FIRST affiliation.
