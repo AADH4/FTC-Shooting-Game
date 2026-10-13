@@ -18,8 +18,9 @@ Open http://localhost:8000. A server is needed because the JavaScript uses ES mo
 ## Controls
 
 - Click the field to focus keyboard controls.
-- WASD or arrow keys: move robot.
-- Q/E: rotate heading (0° up, 90° right).
+- WASD: move robot.
+- Left/Right arrows: rotate heading (0° up, 90° right). Q/E also works.
+- Up/Down arrows: increase/decrease shot range.
 - Heading slider: set direction.
 - Shot range slider: set landing distance in field units.
 - Space or Shoot: fire one practice shot. Wait for it to land before shooting again.
@@ -27,6 +28,8 @@ Open http://localhost:8000. A server is needed because the JavaScript uses ES mo
 - Reset session: restore position, aim, and statistics.
 
 Land the preview ring inside the highlighted opening to score a hit. The session tracks hits, shots, and accuracy. Switching seasons resets the session.
+
+The scoring opening is marked with a bright ring and SHOOT HERE callout. A diamond shows predicted landing; green ON TARGET feedback indicates a scoring shot.
 
 ## Scope
 
