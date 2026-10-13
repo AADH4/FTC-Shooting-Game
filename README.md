@@ -1,23 +1,44 @@
-# FTC Shooting Game — UI starter
+# Eagle Eyes
 
-A responsive layout for a robot basket shooting game. UI only: a static field illustration, robot and basket, scoreboard, aim sliders, and disabled round buttons. Sliders update their labels. Movement, shooting, physics, scoring, timer, and backend are left for future work.
+An original FTC-inspired top-down shooting practice game with two selectable modes:
 
-## Preview
+- **BIOBUZZ:** aim at a highlighted cell of a central Hive, with simplified wall Flowers.
+- **DECODE:** aim purple Artifacts at a highlighted blue Goal, with decorative red Goal, classifiers, obelisk, and base areas.
 
-Open `index.html` in a browser. No installation or build needed.
+## Play locally
 
-## Files
+Requires Python 3. Run from this directory:
 
-- `index.html`: structure, static SVG field, controls, scoreboard
-- `style.css`: responsive layout and visual styles
-- `ui.js`: slider label feedback and integration notes
+```sh
+python3 -m http.server 8000
+```
 
-## Add logic later
+Open http://localhost:8000. A server is needed because the JavaScript uses ES modules. No npm dependencies or build step.
 
-Replace the SVG inside `.arena` with your game renderer. Bind `angle` and `power` to the shooter. Enable `start`, `shoot`, and `reset` when their handlers exist. Update `score`, `time`, `accuracy`, and `status` from game state. Keep movement and physics in separate modules.
+## Controls
 
-Planned controls: A/D movement and Space shooting. Planned objective: as many baskets as possible in 60 seconds. Neither is implemented yet.
+- Click the field to focus keyboard controls.
+- WASD or arrow keys: move robot.
+- Q/E: rotate heading (0° up, 90° right).
+- Heading slider: set direction.
+- Shot range slider: set landing distance in field units.
+- Space or Shoot: fire one practice shot. Wait for it to land before shooting again.
+- Touch arrow buttons: move robot on mobile.
+- Reset session: restore position, aim, and statistics.
 
-Use a feature branch and pull request for teammate review. Suggested future tasks: movement, projectile physics, basket detection, and round timing.
+Land the preview ring inside the highlighted opening to score a hit. The session tracks hits, shots, and accuracy. Switching seasons resets the session.
 
-Original graphics and code. No official FTC affiliation.
+## Scope
+
+These are simplified, season-inspired field illustrations, not dimensionally accurate competition fields. Shots are a 2D landing simulation with a visual flight animation. There is no elevation, gravity, collision detection with field structures, launch-zone enforcement, intake, match timer, Hive tipping, Artifact pattern scoring, or backend. Each successful landing counts as one practice hit, not official season points. Robot movement is constrained to the perimeter only.
+
+## Files and future work
+
+- `index.html`: Eagle Eyes layout, season selector, controls, canvas
+- `style.css`: responsive styling
+- `ui.js`: field rendering, keyboard/touch input, session and flight animation
+- `aim.js`: season targets, starting configurations, landing and hit calculations
+
+Add physical field dimensions, projectile elevation, structure collisions, official season rules, or saved scores in separate modules. Replace the illustrative field coordinates in `aim.js` and `ui.js` when accurate geometry is available.
+
+References: [DECODE official game overview](https://www.firstinspires.org/hubfs/web/program/ftc/first-age-ftc-decode-gamepostcard.pdf), [DECODE official field archive](https://ftc-resources.firstinspires.org/ftc/archive/2026/field), [BioBuzz simulator description](https://biobuzz.ncssmftc.org/lessons/). Original code and graphics; no official FIRST affiliation.
