@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Robot Basket</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<header><span class="tag">ROBOTICS / SHOOTING LAB</span><h1>Robot Basket</h1><p>Line up. Launch. Beat the clock.</p><span class="badge">UI PROTOTYPE</span></header>
+<section class="stats" aria-label="Round statistics"><div>BASKETS<strong id="score">0</strong></div><div>TIME<strong id="time">60s</strong></div><div>ACCURACY<strong id="accuracy">—</strong></div></section>
+<!-- Replace this illustration with your game renderer later. -->
+<section class="arena" aria-label="Static field preview"><div class="arena-label">PRACTICE FIELD <span>01 / BASKET CHALLENGE</span></div>
+<svg viewBox="0 0 1000 500" role="img" aria-labelledby="fieldTitle"><title id="fieldTitle">Static robot and basket illustration</title>
+<defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="#213750"/></pattern></defs>
+<rect width="1000" height="500" fill="url(#grid)"/><rect y="446" width="1000" height="54" fill="#243c56"/>
+<path d="M211 390 Q495 45 837 215" stroke="#67e8ca" stroke-width="3" stroke-dasharray="4 16" fill="none" opacity=".5"/>
+<rect x="890" y="130" width="10" height="315" rx="3" fill="#7993af"/><rect x="880" y="130" width="12" height="115" rx="3" fill="#c1d4e9"/>
+<path d="M790 215L815 295H860L885 215M810 215L825 295M835 215V295M860 215L848 295M800 245H875M810 270H867" fill="none" stroke="#74a4a5" stroke-width="2"/>
+<path d="M788 215H888" stroke="#ff9d66" stroke-width="7" stroke-linecap="round"/>
+<rect x="145" y="396" width="95" height="38" rx="8" fill="#67e8ca"/><rect x="176" y="378" width="40" height="22" rx="4" fill="#3ba68f"/>
+<path d="M204 390L235 355" stroke="#c6fff1" stroke-width="14" stroke-linecap="round"/>
+<circle cx="164" cy="436" r="14" fill="#081221" stroke="#7993af" stroke-width="4"/><circle cx="222" cy="436" r="14" fill="#081221" stroke="#7993af" stroke-width="4"/><circle cx="522" cy="203" r="10" fill="#ffd373"/>
+<g fill="#9db4ce" font-family="system-ui,sans-serif" font-size="13" letter-spacing="2"><text x="155" y="480">ROBOT</text><text x="802" y="105">TARGET</text></g></svg>
+<div class="preview-note">Field preview · Game logic coming later</div></section>
+<section class="controls" aria-label="Aim settings"><label>Launch angle <output id="angleValue" for="angle">55°</output><input id="angle" type="range" min="20" max="80" value="55"></label><label>Launch power <output id="powerValue" for="power">70%</output><input id="power" type="range" min="30" max="100" value="70"></label><div class="buttons"><button id="start" disabled>Start round</button><button id="shoot" disabled>Shoot · Space</button><button id="reset" disabled>Reset</button></div></section>
+<p id="status" role="status">Layout preview. Round controls will be enabled when game logic is added.</p>
+<footer>PLANNED CONTROLS: A / D to move · Space to shoot · Sliders to aim<br>Original FTC-inspired prototype. No official affiliation.</footer>
+</main><script src="ui.js"></script></body></html>
